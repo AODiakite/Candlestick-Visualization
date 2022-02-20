@@ -1,0 +1,47 @@
+---
+title: "Candlestick Visualization"
+author: "ABDOUL OUDOUSS DIAKITE"
+date: "2/19/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Import and cleaning data
+```{r }
+library(casabourse)
+atw <- daily.data('atw',from = '01-01-2017', to = '19-02-2022')
+Ouverture <- atw$Value
+Ouverture <- append(Ouverture,0,0)
+Ouverture <- Ouverture[-length(Ouverture)]
+atw$Ouverture <- Ouverture
+atw$Date <- lubridate::dmy(rownames(atw))
+atw <- atw[-1,] |> dplyr::relocate(Date, .before = Value)
+tibble::tibble(atw)
+```
+
+
+## Interactive Visualization with {plotly}
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, }
+library(plotly)
+fig <- atw %>% plot_ly(x=~Date, type = "candlestick",
+                      open =~Ouverture, close =~Value,
+                      high =~Maximum, low =~Minimum)
+fig <- fig %>% layout(title = 'Chandeliers japonais (ATW)')
+fig
+```
+
+## Visualization with {ggplot2} and {tidyquant}
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, , echo=FALSE}
+library(tidyquant) 
+library(ggplot2)
+fig1 <- ggplot(atw, aes(x = Date, y = Value)) +
+  geom_barchart(aes(open = Ouverture, close = Value, high = Maximum, low = Minimum)) +
+  labs(title = "Chandeliers japonais (ATW)")
+fig1
+
+```
